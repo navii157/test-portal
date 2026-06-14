@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Navii world Quiz Portal</title>
+    <title>Brain Beats Test Portal</title>
     <style>
         :root {
             --primary-color: #0c66e4;
@@ -72,37 +72,37 @@
 
 <div class="container">
     <header>
-        <h1>📝 Menturo Premium Quiz Portal</h1>
-        <p>आपकी लाइव गूगल शीट से संचालित स्वचालित परीक्षा केंद्र</p>
+        <h1>📝 Brain Beats Test Portal</h1>
+        <p>Automated Live Examination System</p>
     </header>
 
     <!-- CONTROL SETUP PANEL -->
     <div id="setup-panel" class="panel-card">
-        <div id="loading-indicator" class="loading-box">🔄 गूगल शीट से लाइव विषय और प्रश्न लोड हो रहे हैं...</div>
+        <div id="loading-indicator" class="loading-box">🔄 Connecting to database and loading questions, please wait...</div>
         
         <div id="controls-area" style="display: none;">
-            <h2>📚 टेस्ट के लिए विषय चुनें:</h2>
+            <h2>📚 Select Subject for the Test:</h2>
             <select id="topic-selector" class="custom-select">
-                <option value="all">Mixed Test (सभी विषयों से मिक्स्ड प्रश्न)</option>
+                <option value="all">Mixed Test (All Subjects Combined)</option>
             </select>
             <br>
-            <button class="btn-action" onclick="startExamSequence()">🚀 टेस्ट लोड करें</button>
+            <button class="btn-action" onclick="startExamSequence()">🚀 Start Test</button>
         </div>
     </div>
 
     <!-- EXAM RESULT CARD -->
     <div id="result-panel" class="result-card">
-        <h2>🎯 आपका परीक्षा परिणाम</h2>
+        <h2>🎯 Your Examination Result</h2>
         <div id="final-percentage" class="score-num">0%</div>
         <div id="stats-breakdown" class="result-stats"></div>
-        <button class="btn-restart" onclick="resetPortal()">🔄 नया टेस्ट शुरू करें</button>
+        <button class="btn-restart" onclick="resetPortal()">🔄 Start New Test</button>
     </div>
 
     <!-- EXAM AREA SHEET -->
     <div id="exam-sheet" class="quiz-sheet">
         <div class="sheet-header">
-            <div>विषय: <span id="current-topic-label" class="topic-badge">All</span></div>
-            <div>कुल प्रश्न: <span id="total-questions-count">0</span></div>
+            <div>Subject: <span id="current-topic-label" class="topic-badge">All</span></div>
+            <div>Total Questions: <span id="total-questions-count">0</span></div>
         </div>
 
         <div id="questions-display-list"></div>
@@ -114,95 +114,75 @@
 </div>
 
 <script>
-    // Direct CSV data streaming setup for faster loading and local testing safety
+    // Premium Data Fetch Engine using Google Visualization API (Highly Stable & CORS Proof)
     const sheetId = "1UNFCe0zl1H6CRDLOyvbRli3bTkpZcezDpMqHFUOPsyk";
-    const proxyUrl = "https://images" + "1-focus-opensocial.googleusercontent.com/gadgets/proxy?container=focus&refresh=5&url=";
-    const targetUrl = encodeURIComponent(`https://docs.google.com/spreadsheets/d/${sheetId}/pub?output=csv`);
-    const finalStreamUrl = proxyUrl + targetUrl;
-
+    
     let globalDatabase = [];
     let activeExamQuestions = [];
 
     window.onload = function() {
-        fetchGoogleSheetData();
+        fetchViaJsonp();
     };
 
-    async function fetchGoogleSheetData() {
-        try {
-            const response = await fetch(finalStreamUrl);
-            if (!response.ok) throw new Error("डेटा फ़ेच करने में समस्या!");
-            const rawCsvText = await response.text();
-            
-            parseCsvData(rawCsvText);
-        } catch (error) {
-            console.error(error);
-            // Fallback strategy if proxy faces delays
-            try {
-                const directResponse = await fetch(`https://docs.google.com/spreadsheets/d/${sheetId}/pub?output=csv`);
-                const directText = await directResponse.text();
-                parseCsvData(directText);
-            } catch(e) {
-                alert("लोकल ब्राउज़र सिक्योरिटी की वजह से लोडिंग रुकी है। कृपया इस फाइल को GitHub पर पब्लिश करें, वहां यह 100% तुरंत काम करेगी!");
-            }
-        }
+    function fetchViaJsonp() {
+        const jsonpUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=responseHandler:handleGoogleSheetResponse`;
+        const script = document.createElement('script');
+        script.src = jsonpUrl;
+        script.id = 'g-sheet-script';
+        script.onerror = function() {
+            alert("Error: Failed to connect to data stream. Check internet or spreadsheet sharing permissions.");
+        };
+        document.body.appendChild(script);
     }
 
-    function parseCsvData(text) {
+    window.handleGoogleSheetResponse = function(response) {
+        if (!response || !response.table || !response.table.rows) {
+            alert("Error: Database format mismatch or empty sheet.");
+            return;
+        }
+
         globalDatabase = [];
-        const lines = text.split("\n");
+        const rows = response.table.rows;
         const subjectSet = new Set();
 
-        for (let i = 0; i < lines.length; i++) {
-            if (!lines[i].trim()) continue;
-            
-            // Helper logic to properly parse CSV cells containing commas inside quotes
-            const cols = [];
-            let insideQuote = false;
-            let currentCell = "";
-            
-            for (let char of lines[i]) {
-                if (char === '"') {
-                    insideQuote = !insideQuote;
-                } else if (char === ',' && !insideQuote) {
-                    cols.push(currentCell.trim());
-                    currentCell = "";
-                } else {
-                    currentCell += char;
-                }
-            }
-            cols.push(currentCell.trim());
+        rows.forEach((row, rowIndex) => {
+            const cells = row.c;
+            if (cells && cells.length >= 8) {
+                const questionText = cells[1] ? cells[1].v : "";
+                if (!questionText || questionText.toString().trim() === "" || questionText === "Question") return;
 
-            if (cols.length >= 8) {
-                const questionText = cols[1];
-                if (!questionText || questionText === "Question" || questionText === "") continue; // Skip configuration rows
-
-                const subName = cols[7] ? cols[7].replace(/[\r\n]+/g, "").trim() : "Unknown";
-                if (subName) subjectSet.add(subName);
+                const subName = cells[7] ? cells[7].v.toString().trim() : "General";
+                if(subName) subjectSet.add(subName);
 
                 globalDatabase.push({
-                    qNum: cols[0] ? cols[0] : (i + 1),
+                    qNum: cells[0] ? cells[0].v : (rowIndex + 1),
                     question: questionText,
-                    options: [cols[2], cols[3], cols[4], cols[5]],
-                    correctIndex: parseInt(cols[6] ? cols[6] : "1") - 1,
+                    options: [
+                        cells[2] ? cells[2].v : "",
+                        cells[3] ? cells[3].v : "",
+                        cells[4] ? cells[4].v : "",
+                        cells[5] ? cells[5].v : ""
+                    ],
+                    correctIndex: parseInt(cells[6] ? cells[6].v : "1") - 1,
                     subject: subName
                 });
             }
-        }
+        });
 
-        // Auto build dynamic filters based on sheet contents
         const selector = document.getElementById('topic-selector');
         subjectSet.forEach(subject => {
-            if(subject && subject !== "Subject") {
-                const opt = document.createElement('option');
-                opt.value = subject;
-                opt.innerText = subject;
-                selector.appendChild(opt);
-            }
+            const opt = document.createElement('option');
+            opt.value = subject;
+            opt.innerText = subject;
+            selector.appendChild(opt);
         });
 
         document.getElementById('loading-indicator').style.display = "none";
         document.getElementById('controls-area').style.display = "block";
-    }
+        
+        const oldScript = document.getElementById('g-sheet-script');
+        if(oldScript) oldScript.remove();
+    };
 
     function startExamSequence() {
         const selectedFilter = document.getElementById('topic-selector').value;
@@ -217,10 +197,11 @@
         }
 
         if(activeExamQuestions.length === 0) {
-            alert("इस विषय में कोई प्रश्न नहीं मिला!");
+            alert("No questions found for the selected subject!");
             return;
         }
 
+        // Shuffling questions for real exam simulation
         activeExamQuestions.sort(() => Math.random() - 0.5);
         document.getElementById('total-questions-count').innerText = activeExamQuestions.length;
 
@@ -233,14 +214,14 @@
 
             const qText = document.createElement('div');
             qText.className = 'q-text';
-            qText.innerText = `Q.${index + 1} [Code: ${item.qNum}] — ${item.question}`;
+            qText.innerText = `Q.${index + 1} — ${item.question}`;
             qBox.appendChild(qText);
 
             const grid = document.createElement('div');
             grid.className = 'options-grid';
 
             item.options.forEach((opt, oIdx) => {
-                if(!opt) return;
+                if(opt === null || opt === "") return;
                 const label = document.createElement('label');
                 label.className = 'option-label';
                 label.id = `label-${index}-${oIdx}`;
@@ -295,14 +276,14 @@
 
             if (chosenIndex === null) {
                 skipped++;
-                feedbackBox.innerText = `⚠️ आपने उत्तर नहीं दिया! सही विकल्प: "${item.options[item.correctIndex]}"`;
+                feedbackBox.innerText = `⚠️ Skipped! Correct option: "${item.options[item.correctIndex]}"`;
                 feedbackBox.className = "feedback-text wrong";
             } else if (chosenIndex === item.correctIndex) {
                 score++;
-                feedbackBox.innerText = `✓ सही जवाब!`;
+                feedbackBox.innerText = `✓ Correct Answer!`;
                 feedbackBox.className = "feedback-text correct";
             } else {
-                feedbackBox.innerText = `✗ गलत जवाब! सही विकल्प: "${item.options[item.correctIndex]}" था।`;
+                feedbackBox.innerText = `✗ Wrong Answer! Correct option was: "${item.options[item.correctIndex]}"`;
                 feedbackBox.className = "feedback-text wrong";
             }
         });
@@ -313,11 +294,11 @@
 
         document.getElementById('final-percentage').innerText = pct + '%';
         document.getElementById('stats-breakdown').innerHTML = `
-            <strong>📊 रिपोर्ट कार्ड:</strong><br>
-            • कुल प्रश्न: ${totalQ}<br>
-            • सही उत्तर: <span style="color:var(--success); font-weight:bold">${score}</span><br>
-            • गलत उत्तर: <span style="color:var(--danger); font-weight:bold">${totalWrong}</span><br>
-            • छोड़े गए प्रश्न: ${skipped}
+            <strong>📊 Score Report:</strong><br>
+            • Total Questions: ${totalQ}<br>
+            • Correct Answers: <span style="color:var(--success); font-weight:bold">${score}</span><br>
+            • Wrong Answers: <span style="color:var(--danger); font-weight:bold">${totalWrong}</span><br>
+            • Unanswered: ${skipped}
         `;
 
         document.getElementById('result-panel').style.display = 'block';
@@ -329,7 +310,6 @@
         document.getElementById('exam-sheet').classList.remove('active');
         document.getElementById('result-panel').style.display = 'none';
         document.getElementById('setup-panel').style.display = 'block';
-        document.getElementById('final-submit-btn').style.display = 'inline-block';
     }
 </script>
 </body>
