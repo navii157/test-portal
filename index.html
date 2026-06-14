@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menturo Premium Quiz Portal</title>
+    <style>
+        :root {
+            --primary-color: #0c66e4;
+            --secondary-color: #e9f2ff;
+            --bg-dark: #0f172a;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --border: #e2e8f0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: #f8fafc; color: var(--text-main); padding: 20px 10px; min-height: 100vh; }
+        .container { width: 100%; max-width: 850px; margin: 0 auto; }
+        
+        header { background: linear-gradient(135deg, #0f172a, #1e293b); color: white; padding: 30px 20px; border-radius: 12px; text-align: center; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        header h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
+        header p { color: #94a3b8; font-size: 15px; }
+
+        .panel-card { background: var(--card-bg); padding: 30px; border-radius: 12px; border: 1px solid var(--border); text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .panel-card h2 { font-size: 20px; margin-bottom: 15px; color: #0f172a; }
+        
+        .custom-select { width: 100%; max-width: 400px; padding: 12px 20px; background: #fff; color: var(--text-main); border: 2px solid #cbd5e1; border-radius: 8px; font-size: 16px; font-weight: 600; outline: none; margin-bottom: 20px; cursor: pointer; transition: 0.2s; }
+        .custom-select:focus { border-color: var(--primary-color); }
+        
+        .btn-action { background: var(--primary-color); color: white; padding: 14px 40px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; border: none; transition: 0.2s; box-shadow: 0 4px 6px rgba(12, 102, 228, 0.2); }
+        .btn-action:hover { background: #0052cc; transform: translateY(-1px); }
+
+        .loading-box { font-size: 18px; font-weight: bold; color: var(--primary-color); margin: 20px 0; }
+
+        .quiz-sheet { display: none; }
+        .quiz-sheet.active { display: block; }
+
+        .sheet-header { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border); font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .topic-badge { background: var(--secondary-color); color: var(--primary-color); padding: 6px 14px; border-radius: 20px; font-size: 14px; }
+
+        .q-container { background: var(--card-bg); padding: 25px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); text-align: left; }
+        .q-text { font-size: 17px; font-weight: 600; margin-bottom: 15px; line-height: 1.6; color: #0f172a; }
+        
+        .options-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        
+        .option-label { display: flex; align-items: center; background: #f8fafc; padding: 12px 18px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; font-size: 15px; }
+        .option-label:hover { background: #f1f5f9; border-color: #cbd5e1; }
+        .option-label input[type="radio"] { margin-right: 12px; width: 18px; height: 18px; accent-color: var(--primary-color); }
+
+        .option-label.correct-ans { background: #dcfce7 !important; border-color: var(--success) !important; color: #15803d; font-weight: 600; }
+        .option-label.wrong-ans { background: #fee2e2 !important; border-color: var(--danger) !important; color: #b91c1c; font-weight: 600; }
+        
+        .feedback-text { margin-top: 12px; font-size: 14px; font-weight: 600; display: none; padding: 6px 12px; border-radius: 6px; }
+        .feedback-text.correct { display: block; color: #16a34a; background: #f0fdf4; width: fit-content; }
+        .feedback-text.wrong { display: block; color: #dc2626; background: #fef2f2; width: fit-content; }
+
+        .footer-actions { text-align: center; margin: 30px 0 60px 0; }
+        .btn-submit-test { background: #22c55e; color: white; padding: 16px 50px; font-size: 18px; font-weight: bold; border-radius: 8px; border: none; cursor: pointer; box-shadow: 0 4px 6px rgba(34, 197, 94, 0.2); }
+        .btn-submit-test:hover { background: #16a34a; }
+
+        .result-card { display: none; background: #fff; border: 2px solid var(--primary-color); padding: 35px; border-radius: 12px; text-align: center; margin-bottom: 25px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
+        .score-num { font-size: 56px; font-weight: 800; color: var(--primary-color); margin: 10px 0; }
+        .result-stats { font-size: 16px; line-height: 2; margin-bottom: 20px; color: var(--text-muted); text-align: left; max-width: 300px; margin: 15px auto; }
+        .btn-restart { background: #64748b; color: white; padding: 12px 30px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>📝 Menturo Premium Quiz Portal</h1>
+        <p>आपकी लाइव गूगल शीट से संचालित स्वचालित परीक्षा केंद्र</p>
+    </header>
+
+    <!-- CONTROL SETUP PANEL -->
+    <div id="setup-panel" class="panel-card">
+        <div id="loading-indicator" class="loading-box">🔄 गूगल शीट से लाइव विषय और प्रश्न लोड हो रहे हैं...</div>
+        
+        <div id="controls-area" style="display: none;">
+            <h2>📚 टेस्ट के लिए विषय चुनें:</h2>
+            <select id="topic-selector" class="custom-select">
+                <option value="all">Mixed Test (सभी विषयों से मिक्स्ड प्रश्न)</option>
+            </select>
+            <br>
+            <button class="btn-action" onclick="startExamSequence()">🚀 टेस्ट लोड करें</button>
+        </div>
+    </div>
+
+    <!-- EXAM RESULT CARD -->
+    <div id="result-panel" class="result-card">
+        <h2>🎯 आपका परीक्षा परिणाम</h2>
+        <div id="final-percentage" class="score-num">0%</div>
+        <div id="stats-breakdown" class="result-stats"></div>
+        <button class="btn-restart" onclick="resetPortal()">🔄 नया टेस्ट शुरू करें</button>
+    </div>
+
+    <!-- EXAM AREA SHEET -->
+    <div id="exam-sheet" class="quiz-sheet">
+        <div class="sheet-header">
+            <div>विषय: <span id="current-topic-label" class="topic-badge">All</span></div>
+            <div>कुल प्रश्न: <span id="total-questions-count">0</span></div>
+        </div>
+
+        <div id="questions-display-list"></div>
+
+        <div class="footer-actions">
+            <button id="final-submit-btn" class="btn-submit-test" onclick="evaluateQuizSheet()">🔒 Submit Entire Test</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Direct CSV data streaming setup for faster loading and local testing safety
+    const sheetId = "1UNFCe0zl1H6CRDLOyvbRli3bTkpZcezDpMqHFUOPsyk";
+    const proxyUrl = "https://images" + "1-focus-opensocial.googleusercontent.com/gadgets/proxy?container=focus&refresh=5&url=";
+    const targetUrl = encodeURIComponent(`https://docs.google.com/spreadsheets/d/${sheetId}/pub?output=csv`);
+    const finalStreamUrl = proxyUrl + targetUrl;
+
+    let globalDatabase = [];
+    let activeExamQuestions = [];
+
+    window.onload = function() {
+        fetchGoogleSheetData();
+    };
+
+    async function fetchGoogleSheetData() {
+        try {
+            const response = await fetch(finalStreamUrl);
+            if (!response.ok) throw new Error("डेटा फ़ेच करने में समस्या!");
+            const rawCsvText = await response.text();
+            
+            parseCsvData(rawCsvText);
+        } catch (error) {
+            console.error(error);
+            // Fallback strategy if proxy faces delays
+            try {
+                const directResponse = await fetch(`https://docs.google.com/spreadsheets/d/${sheetId}/pub?output=csv`);
+                const directText = await directResponse.text();
+                parseCsvData(directText);
+            } catch(e) {
+                alert("लोकल ब्राउज़र सिक्योरिटी की वजह से लोडिंग रुकी है। कृपया इस फाइल को GitHub पर पब्लिश करें, वहां यह 100% तुरंत काम करेगी!");
+            }
+        }
+    }
+
+    function parseCsvData(text) {
+        globalDatabase = [];
+        const lines = text.split("\n");
+        const subjectSet = new Set();
+
+        for (let i = 0; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+            
+            // Helper logic to properly parse CSV cells containing commas inside quotes
+            const cols = [];
+            let insideQuote = false;
+            let currentCell = "";
+            
+            for (let char of lines[i]) {
+                if (char === '"') {
+                    insideQuote = !insideQuote;
+                } else if (char === ',' && !insideQuote) {
+                    cols.push(currentCell.trim());
+                    currentCell = "";
+                } else {
+                    currentCell += char;
+                }
+            }
+            cols.push(currentCell.trim());
+
+            if (cols.length >= 8) {
+                const questionText = cols[1];
+                if (!questionText || questionText === "Question" || questionText === "") continue; // Skip configuration rows
+
+                const subName = cols[7] ? cols[7].replace(/[\r\n]+/g, "").trim() : "Unknown";
+                if (subName) subjectSet.add(subName);
+
+                globalDatabase.push({
+                    qNum: cols[0] ? cols[0] : (i + 1),
+                    question: questionText,
+                    options: [cols[2], cols[3], cols[4], cols[5]],
+                    correctIndex: parseInt(cols[6] ? cols[6] : "1") - 1,
+                    subject: subName
+                });
+            }
+        }
+
+        // Auto build dynamic filters based on sheet contents
+        const selector = document.getElementById('topic-selector');
+        subjectSet.forEach(subject => {
+            if(subject && subject !== "Subject") {
+                const opt = document.createElement('option');
+                opt.value = subject;
+                opt.innerText = subject;
+                selector.appendChild(opt);
+            }
+        });
+
+        document.getElementById('loading-indicator').style.display = "none";
+        document.getElementById('controls-area').style.display = "block";
+    }
+
+    function startExamSequence() {
+        const selectedFilter = document.getElementById('topic-selector').value;
+        const selectorEl = document.getElementById('topic-selector');
+        
+        if (selectedFilter === 'all') {
+            activeExamQuestions = [...globalDatabase];
+            document.getElementById('current-topic-label').innerText = "All Mixed Papers";
+        } else {
+            activeExamQuestions = globalDatabase.filter(item => item.subject === selectedFilter);
+            document.getElementById('current-topic-label').innerText = selectorEl.options[selectorEl.selectedIndex].text;
+        }
+
+        if(activeExamQuestions.length === 0) {
+            alert("इस विषय में कोई प्रश्न नहीं मिला!");
+            return;
+        }
+
+        activeExamQuestions.sort(() => Math.random() - 0.5);
+        document.getElementById('total-questions-count').innerText = activeExamQuestions.length;
+
+        const containerList = document.getElementById('questions-display-list');
+        containerList.innerHTML = "";
+
+        activeExamQuestions.forEach((item, index) => {
+            const qBox = document.createElement('div');
+            qBox.className = 'q-container';
+
+            const qText = document.createElement('div');
+            qText.className = 'q-text';
+            qText.innerText = `Q.${index + 1} [Code: ${item.qNum}] — ${item.question}`;
+            qBox.appendChild(qText);
+
+            const grid = document.createElement('div');
+            grid.className = 'options-grid';
+
+            item.options.forEach((opt, oIdx) => {
+                if(!opt) return;
+                const label = document.createElement('label');
+                label.className = 'option-label';
+                label.id = `label-${index}-${oIdx}`;
+
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = `quiz-group-${index}`;
+                radio.value = oIdx;
+
+                label.appendChild(radio);
+                label.appendChild(document.createTextNode(" " + opt));
+                grid.appendChild(label);
+            });
+
+            qBox.appendChild(grid);
+
+            const feedback = document.createElement('div');
+            feedback.className = 'feedback-text';
+            feedback.id = `feedback-${index}`;
+            qBox.appendChild(feedback);
+
+            containerList.appendChild(qBox);
+        });
+
+        document.getElementById('setup-panel').style.display = 'none';
+        document.getElementById('exam-sheet').classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function evaluateQuizSheet() {
+        let score = 0;
+        let skipped = 0;
+
+        activeExamQuestions.forEach((item, index) => {
+            const checkedRadio = document.querySelector(`input[name="quiz-group-${index}"]:checked`);
+            const feedbackBox = document.getElementById(`feedback-${index}`);
+            let chosenIndex = checkedRadio ? parseInt(checkedRadio.value) : null;
+
+            item.options.forEach((opt, oIdx) => {
+                const label = document.getElementById(`label-${index}-${oIdx}`);
+                if(!label) return;
+                const radioInput = label.querySelector('input');
+                if(radioInput) radioInput.disabled = true;
+
+                if (oIdx === item.correctIndex) {
+                    label.classList.add('correct-ans');
+                }
+                if (chosenIndex !== null && oIdx === chosenIndex && chosenIndex !== item.correctIndex) {
+                    label.classList.add('wrong-ans');
+                }
+            });
+
+            if (chosenIndex === null) {
+                skipped++;
+                feedbackBox.innerText = `⚠️ आपने उत्तर नहीं दिया! सही विकल्प: "${item.options[item.correctIndex]}"`;
+                feedbackBox.className = "feedback-text wrong";
+            } else if (chosenIndex === item.correctIndex) {
+                score++;
+                feedbackBox.innerText = `✓ सही जवाब!`;
+                feedbackBox.className = "feedback-text correct";
+            } else {
+                feedbackBox.innerText = `✗ गलत जवाब! सही विकल्प: "${item.options[item.correctIndex]}" था।`;
+                feedbackBox.className = "feedback-text wrong";
+            }
+        });
+
+        const totalQ = activeExamQuestions.length;
+        const totalWrong = totalQ - score - skipped;
+        const pct = Math.round((score / totalQ) * 100);
+
+        document.getElementById('final-percentage').innerText = pct + '%';
+        document.getElementById('stats-breakdown').innerHTML = `
+            <strong>📊 रिपोर्ट कार्ड:</strong><br>
+            • कुल प्रश्न: ${totalQ}<br>
+            • सही उत्तर: <span style="color:var(--success); font-weight:bold">${score}</span><br>
+            • गलत उत्तर: <span style="color:var(--danger); font-weight:bold">${totalWrong}</span><br>
+            • छोड़े गए प्रश्न: ${skipped}
+        `;
+
+        document.getElementById('result-panel').style.display = 'block';
+        document.getElementById('final-submit-btn').style.display = 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetPortal() {
+        document.getElementById('exam-sheet').classList.remove('active');
+        document.getElementById('result-panel').style.display = 'none';
+        document.getElementById('setup-panel').style.display = 'block';
+        document.getElementById('final-submit-btn').style.display = 'inline-block';
+    }
+</script>
+</body>
+</html>
